@@ -1,0 +1,35 @@
+name: Pinterest - prueba de lectura
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Comprobar acceso sin exponer datos
+        env:
+          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, urllib.request, urllib.error
+          token = os.environ.get("PINTEREST_ACCESS_TOKEN")
+          if not token:
+              raise SystemExit("Falta configurar PINTEREST_ACCESS_TOKEN")
+          failed = False
+          for endpoint in ("user_account", "boards", "pins"):
+              req = urllib.request.Request("https://api.pinterest.com/v5/" + endpoint, headers={"Authorization": "Bearer " + token, "Accept": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      print(f"{endpoint}: HTTP {response.status}")
+              except urllib.error.HTTPError as error:
+                  print(f"{endpoint}: HTTP {error.code}")
+                  failed = True
+              except urllib.error.URLError:
+                  print(f"{endpoint}: error de conexión")
+                  failed = True
+          if failed:
+              raise SystemExit(1)
+          PY
