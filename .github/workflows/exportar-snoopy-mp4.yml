@@ -16,42 +16,58 @@ jobs:
           python-version: '3.12'
       - name: Preparar navegador y conversor
         run: |
-          pip install playwright
+          pip install playwright pillow
           python -m playwright install --with-deps chromium
           sudo apt-get update -qq && sudo apt-get install -y ffmpeg
-      - name: Capturar animación original
+      - name: Renderizar fotogramas sin inicio vacío
         run: |
-          mkdir -p videos /tmp/snoopy-capture
+          mkdir -p videos /tmp/snoopy-frames
           python -m http.server 8765 --bind 127.0.0.1 >/tmp/snoopy-http.log 2>&1 &
           python - <<'PY'
           from playwright.sync_api import sync_playwright
           from pathlib import Path
+          from PIL import Image, ImageChops
+          import time
+          source = Path('demo-hojas-ilustradas.html').read_text()
+          assert 'play().catch' in source
+          html = source[:source.rfind('play().catch')] + '''
+          window.prepareVideo=async()=>{art.src=cfg.src;await art.decode();if(!art.naturalWidth)throw Error("No se cargó la ilustración");document.body.style.background="#d9b9b9";paper.style.transition="none";pen.style.transition="none";env.style.transition="none";heart.style.transition="none";paper.style.opacity="1";window.videoLines=cfg.lines.map((line,i)=>{const el=document.createElement("div");el.className="ink";el.textContent=line;el.style.left=cfg.x*340+"px";el.style.top=(cfg.y+i*cfg.step)*510+"px";writing.appendChild(el);return el});};
+          window.renderVideo=(t)=>{let current=-1,progress=0;window.videoLines.forEach((el,i)=>{const p=Math.max(0,Math.min(1,(t-.3-i*.72)/.65));el.style.clipPath="inset(0 "+(100*(1-p))+"% 0 0)";if(p>0&&p<1){current=i;progress=p}});pen.style.opacity=current>=0?"1":"0";if(current>=0){const el=window.videoLines[current];const [x,y]=point(cfg.x*340+el.offsetWidth*progress,(cfg.y+current*cfg.step)*510+13+Math.sin(progress*el.textContent.length*3)*2);pen.style.left=x+"px";pen.style.top=(y-11.5)+"px"}if(t>5.3){const p=Math.min(1,(t-5.3)/.65);env.style.setProperty("--env","#bd6678");env.style.setProperty("--env2","#e3a5b1");env.style.opacity=p;env.style.transform="translateY("+(130*(1-p))+"px)";const q=Math.max(0,Math.min(1,(t-5.65)/.8));paper.style.transform="translateY("+(85*q)+"px) rotate("+(2*(1-q))+"deg) scale("+(1-.28*q)+")";if(t>6.5)heart.classList.add("show")}};
+          </script></body></html>'''
           with sync_playwright() as p:
-              browser = p.chromium.launch(args=['--no-sandbox'])
-              ctx = browser.new_context(viewport={'width':1080,'height':1920}, device_scale_factor=1, record_video_dir='/tmp/snoopy-capture', record_video_size={'width':1080,'height':1920})
-              page = ctx.new_page()
+              browser=p.chromium.launch(args=['--no-sandbox'])
+              page=browser.new_page(viewport={'width':1080,'height':1920},device_scale_factor=1)
+              page.route('**/demo-hojas-ilustradas.html?hoja=snoopy',lambda route:route.fulfill(status=200,content_type='text/html; charset=utf-8',body=html))
               page.goto('http://127.0.0.1:8765/demo-hojas-ilustradas.html?hoja=snoopy')
-              page.locator('#art').evaluate('(img) => img.decode()')
-              page.wait_for_timeout(8200)
-              video = page.video
-              page.close()
-              ctx.close()
-              video.save_as('/tmp/snoopy-capture/source.webm')
+              page.evaluate('window.prepareVideo()')
+              page.evaluate('document.fonts.ready')
+              for i in range(192):
+                  page.evaluate('(t)=>window.renderVideo(t)',i/24)
+                  page.screenshot(path=f'/tmp/snoopy-frames/{i:04d}.jpg',type='jpeg',quality=92)
               browser.close()
+          first=Image.open('/tmp/snoopy-frames/0000.jpg').convert('RGB')
+          mid=Image.open('/tmp/snoopy-frames/0100.jpg').convert('RGB')
+          blue=sum(1 for r,g,b in first.resize((270,480)).getdata() if b>r+20 and g>r+10)
+          assert blue>1800, f'Primera imagen sin la hoja azul: {blue}'
+          diff=ImageChops.difference(first,mid)
+          assert diff.crop((200,450,880,1100)).getbbox(), 'No hay cambios en la escritura'
+          first.save('videos/carta-snoopy-v2-portada.jpg',quality=90)
+          mid.save('videos/carta-snoopy-v2-muestra.jpg',quality=90)
+          print(f'Primer fotograma verificado: {blue} pixeles azules en muestra reducida; 192 fotogramas')
           PY
-          ffmpeg -y -i /tmp/snoopy-capture/source.webm -c:v libx264 -pix_fmt yuv420p -r 30 -crf 20 -movflags +faststart -an videos/carta-snoopy.mp4
-          ffprobe -v error -show_entries stream=width,height,codec_name -show_entries format=duration -of json videos/carta-snoopy.mp4
+          ffmpeg -y -framerate 24 -i /tmp/snoopy-frames/%04d.jpg -c:v libx264 -pix_fmt yuv420p -crf 20 -movflags +faststart -an videos/carta-snoopy-v2.mp4
+          ffprobe -v error -show_entries stream=width,height,codec_name -show_entries format=duration -of json videos/carta-snoopy-v2.mp4
       - uses: actions/upload-artifact@v4
         with:
-          name: carta-snoopy-mp4
-          path: videos/carta-snoopy.mp4
-      - name: Guardar MP4 en el repositorio
+          name: carta-snoopy-v2
+          path: videos/carta-snoopy-v2*
+      - name: Guardar versión corregida
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add videos/carta-snoopy.mp4
+          git add videos/carta-snoopy-v2*
           if ! git diff --cached --quiet; then
-            git commit -m "Exportar carta Snoopy a MP4"
+            git commit -m "Exportar Snoopy con primer fotograma visible y muestra verificada"
             git pull --rebase
             git push
           fi
