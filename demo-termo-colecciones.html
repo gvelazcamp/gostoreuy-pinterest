@@ -1,0 +1,129 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Stickers al termo</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;background:#1d1b19;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+#stage{position:absolute;left:50%;top:50%;width:540px;height:960px;margin:-480px 0 0 -270px;background:#efe6d4;border-radius:14px;overflow:hidden;transform-origin:center}
+#sheetbox{position:absolute;left:138px;top:70px;width:264px;height:330px;box-shadow:0 8px 24px #0005;background:#fff;transition:opacity .6s}
+#sheetbox img.sheet{width:100%;height:100%;display:block}
+.hole{position:absolute;background:#e9e7e2;border:1.5px dashed #bbb;border-radius:14px}
+svg.ov{position:absolute;inset:0;pointer-events:none}
+#sc{position:absolute;font-size:30px;line-height:1;z-index:9;display:none}
+.st{position:absolute;z-index:6;filter:drop-shadow(0 3px 4px #0006);transition:opacity .3s}
+#th{position:absolute;left:153px;top:405px;width:260px;height:450px;transform:scale(.9);transform-origin:0 0}
+#th svg{position:absolute;inset:0}
+#body{position:absolute;left:55px;top:105px;width:150px;height:315px;border-radius:16px;overflow:hidden}
+#body canvas{position:absolute;left:0;opacity:0;transition:opacity .3s;filter:drop-shadow(0 .6px .8px rgba(0,0,0,.45))}
+#body::after{content:"";position:absolute;inset:0;pointer-events:none;background:
+ linear-gradient(90deg,rgba(0,0,0,.34) 0,rgba(0,0,0,0) 20%,rgba(255,255,255,.2) 33%,rgba(255,255,255,0) 50%,rgba(0,0,0,.1) 75%,rgba(0,0,0,.38) 100%),
+ linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,0) 8%,rgba(0,0,0,0) 94%,rgba(0,0,0,.18))}
+</style></head><body>
+<div id="stage">
+ <div id="sheetbox"><img class="sheet" src="" alt=""></div>
+ <div id="th">
+  <svg viewBox="0 0 260 450" width="260" height="450">
+   <defs>
+    <linearGradient id="steel" x1="0" x2="1"><stop offset="0" stop-color="#8a9198"/><stop offset=".28" stop-color="#f3f6f8"/><stop offset=".6" stop-color="#c3c9ce"/><stop offset="1" stop-color="#7d848b"/></linearGradient>
+    <filter id="ham" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".6" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .7 -.22"/></filter>
+   </defs>
+   <ellipse cx="130" cy="446" rx="96" ry="7" fill="#0003"/>
+   <path d="M205 150h22a14 14 0 0 1 14 14v112a14 14 0 0 1-14 14h-22" fill="none" stroke="#2c5a44" stroke-width="11" stroke-linecap="round"/>
+   <path d="M208 157h19a7 7 0 0 1 7 7v112a7 7 0 0 1-7 7h-19" fill="none" stroke="#c9d0d5" stroke-width="3"/>
+   <rect x="82" y="4" width="96" height="92" rx="12" fill="url(#steel)"/>
+   <rect x="82" y="4" width="96" height="10" rx="5" fill="#00000026"/>
+   <rect x="76" y="92" width="108" height="16" rx="5" fill="#2c5a44"/>
+   <rect x="55" y="104" width="150" height="316" rx="17" fill="#5b8f73"/>
+   <rect x="55" y="104" width="150" height="316" rx="17" filter="url(#ham)"/>
+   <rect x="50" y="414" width="160" height="32" rx="9" fill="url(#steel)"/>
+   <rect x="50" y="414" width="160" height="3" fill="#0003"/>
+   <rect x="198" y="144" width="10" height="16" rx="2" fill="url(#steel)"/><rect x="198" y="282" width="10" height="16" rx="2" fill="url(#steel)"/>
+  </svg>
+  <div id="body"></div>
+ </div>
+ <div id="sc">✂️</div>
+</div>
+<script>
+const ts=.9,SL=138,ST=70,D=[];let k=1;const st=document.getElementById('stage'),sb=document.getElementById('sheetbox'),bd=document.getElementById('body'),cap={},sc=document.getElementById('sc');
+const sl=ms=>new Promise(r=>setTimeout(r,ms));
+function fit(){st.style.transform='scale('+Math.min(innerWidth/540,innerHeight/960)+')'}
+addEventListener('resize',fit);fit();
+function cut(s){return new Promise(res=>{
+ const X=s.x*k,Y=s.y*k,w=s.w*k,h=s.h*k;
+ const sv=document.createElementNS('http://www.w3.org/2000/svg','svg');sv.setAttribute('class','ov');sv.setAttribute('viewBox','0 0 '+sb.clientWidth+' '+sb.clientHeight);sv.style.width='100%';sv.style.height='100%';
+ const r=document.createElementNS(sv.namespaceURI,'rect');
+ for(const [a,b] of Object.entries({x:X-3,y:Y-3,width:w+6,height:h+6,rx:14,fill:'none',stroke:'#e63946','stroke-width':2.5,pathLength:1,'stroke-dasharray':'0 1','stroke-linecap':'round'}))r.setAttribute(a,b);
+ sv.appendChild(r);sb.appendChild(sv);sc.style.display='block';
+ const W=w+6,H=h+6,P=2*(W+H),x=X-3,y=Y-3,t0=performance.now(),dur=750;
+ (function f(n){const t=Math.min(1,(n-t0)/dur);r.setAttribute('stroke-dasharray',t+' 1');
+  const d=t*P;let px,py;
+  if(d<W){px=x+d;py=y}else if(d<W+H){px=x+W;py=y+d-W}else if(d<2*W+H){px=x+W-(d-W-H);py=y+H}else{px=x;py=y+H-(d-2*W-H)}
+  sc.style.left=(SL+px-15)+'px';sc.style.top=(ST+py-15)+'px';sc.style.transform='rotate('+(Math.sin(n/60)*14)+'deg)';
+  if(t<1)requestAnimationFrame(f);else{sv.remove();res()}})(t0);
+})}
+function warp(s,img){
+ const S=3,w=s.w2,h=w*img.naturalHeight/img.naturalWidth,a=s.r*Math.PI/180;
+ const bw=Math.abs(w*Math.cos(a))+Math.abs(h*Math.sin(a)),bh=Math.abs(w*Math.sin(a))+Math.abs(h*Math.cos(a));
+ const o=document.createElement('canvas');o.width=Math.ceil(bw*S);o.height=Math.ceil(bh*S);
+ const c=o.getContext('2d');c.translate(o.width/2,o.height/2);c.rotate(a);c.drawImage(img,-w*S/2,-h*S/2,w*S,h*S);
+ const R=75,cv=document.createElement('canvas');cv.width=150*S;cv.height=o.height;const g=cv.getContext('2d');
+ for(let dx=0;dx<cv.width;dx++){
+  const xd=(dx+.5)/S-R;if(Math.abs(xd)>=R*.995)continue;
+  const th=Math.asin(xd/R),cs=Math.cos(th),u=R*th-s.u+bw/2,sw=1/cs,sx=u*S-sw/2;
+  if(sx<0||sx+sw>o.width)continue;
+  g.drawImage(o,sx,0,sw,o.height,dx,0,1,o.height);
+ }
+ cv.style.width='150px';cv.style.height=bh+'px';cv.style.top=(s.ty-105-bh/2)+'px';return cv;
+}
+async function fly(s){
+ const hl=document.createElement('div');hl.className='hole';Object.assign(hl.style,{left:s.x*k+'px',top:s.y*k+'px',width:s.w*k+'px',height:s.h*k+'px'});sb.appendChild(hl);
+ const im=new Image();im.src=s.src;await im.decode();im.className='st';
+ Object.assign(im.style,{left:(SL+s.x*k)+'px',top:(ST+s.y*k)+'px',width:s.w*k+'px',transition:'all .65s cubic-bezier(.5,0,.25,1)'});
+ st.appendChild(im);await sl(60);
+ const h2=s.w2*s.h/s.w;
+ Object.assign(im.style,{left:(270+(s.u-s.w2/2)*ts)+'px',top:(405+(s.ty-h2/2)*ts)+'px',width:s.w2*ts+'px',transform:'rotate('+s.r+'deg)'});
+ await sl(700);
+ const cv=warp(s,im);bd.appendChild(cv);requestAnimationFrame(()=>{cv.style.opacity=1;im.style.transition='opacity .3s';im.style.opacity=0});
+ setTimeout(()=>im.remove(),400);
+}
+
+const sheets={'dragon-ball':'stickers-dragon-ball.jpg',dexter:'stickers-dexter.png',snoopy:'stickers-snoopy.png'};
+const key=new URLSearchParams(location.search).get('coleccion');
+const sheet=sb.querySelector('img');
+function extract(img){
+ const W=660,H=Math.round(W*img.naturalHeight/img.naturalWidth),c=document.createElement('canvas');c.width=W;c.height=H;
+ const g=c.getContext('2d',{willReadFrequently:true});g.fillStyle='#fff';g.fillRect(0,0,W,H);g.drawImage(img,0,0,W,H);
+ const rgba=g.getImageData(0,0,W,H).data,N=W*H,ink=new Uint8Array(N),mask=new Uint8Array(N),seen=new Uint8Array(N),q=new Int32Array(N);
+ for(let p=0;p<N;p++){let i=p*4;ink[p]=(Math.min(rgba[i],rgba[i+1],rgba[i+2])<218)?1:0}
+ // Unite the outline and adjacent color pixels without merging distant stickers.
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(ink[y*W+x])for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){let a=x+dx,b=y+dy;if(a>=0&&a<W&&b>=0&&b<H)mask[b*W+a]=1}
+ const boxes=[];
+ for(let p=0;p<N;p++){if(!mask[p]||seen[p])continue;let head=0,tail=1,x0=W,y0=H,x1=0,y1=0;seen[p]=1;q[0]=p;
+ while(head<tail){const u=q[head++],x=u%W,y=(u/W)|0;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);
+ for(const v of [x>0?u-1:-1,x<W-1?u+1:-1,y>0?u-W:-1,y<H-1?u+W:-1])if(v>=0&&mask[v]&&!seen[v]){seen[v]=1;q[tail++]=v}}
+ const w=x1-x0+1,h=y1-y0+1;if(tail>800&&w>48&&h>45&&w<W*.72&&h<H*.48)boxes.push({x:x0,y:y0,w,h,area:tail})}
+ boxes.sort((a,b)=>b.area-a.area);
+ const selected=[];
+ for(const b of boxes){if(selected.some(a=>b.x<a.x+a.w+4&&b.x+b.w+4>a.x&&b.y<a.y+a.h+4&&b.y+b.h+4>a.y))continue;selected.push(b);if(selected.length===6)break}
+ if(selected.length<3)throw Error('No se detectaron suficientes stickers separados');
+ selected.sort((a,b)=>a.y-b.y||a.x-b.x);
+ const positions=[[0,147,91,-4],[-40,220,65,-5],[43,220,58,5],[-40,305,66,-4],[43,305,66,4],[0,380,83,-2]];
+ return selected.map((b,i)=>{
+ const pad=5,x=Math.max(0,b.x-pad),y=Math.max(0,b.y-pad),w=Math.min(W-x,b.w+pad*2),h=Math.min(H-y,b.h+pad*2);
+ const crop=document.createElement('canvas');crop.width=w;crop.height=h;const cg=crop.getContext('2d',{willReadFrequently:true});cg.drawImage(c,x,y,w,h,0,0,w,h);
+ const pixels=cg.getImageData(0,0,w,h),d=pixels.data,visited=new Uint8Array(w*h),queue=new Int32Array(w*h);let head=0,tail=0;
+ function visit(p){if(p<0||p>=w*h||visited[p])return;let j=p*4;if(Math.min(d[j],d[j+1],d[j+2])<230)return;visited[p]=1;queue[tail++]=p}
+ for(let a=0;a<w;a++){visit(a);visit((h-1)*w+a)}for(let a=0;a<h;a++){visit(a*w);visit(a*w+w-1)}
+ while(head<tail){const p=queue[head++],a=p%w,b=(p/w)|0;if(a>0)visit(p-1);if(a<w-1)visit(p+1);if(b>0)visit(p-w);if(b<h-1)visit(p+w)}
+ for(let p=0;p<w*h;p++)if(visited[p])d[p*4+3]=0;
+ cg.putImageData(pixels,0,0);const [u,ty,w2,r]=positions[i];return {src:crop.toDataURL('image/png'),x,y,w,h,u,ty,w2:Math.min(w2,82*w/h),r}
+ });
+}
+async function play(){
+ if(!sheets[key])throw Error('Colección no válida');
+ sheet.src=sheets[key];await sheet.decode();k=264/660;sb.style.height=(Math.round(660*sheet.naturalHeight/sheet.naturalWidth)*k)+'px';if(parseFloat(sb.style.height)>330){const scale=330/parseFloat(sb.style.height);k*=scale;sb.style.width=(264*scale)+'px';sb.style.height='330px';}
+ D.push(...extract(sheet));await Promise.all(D.map(s=>{const im=new Image();im.src=s.src;return im.decode()}));
+ for(const s of D){await cut(s);sc.style.display='none';await fly(s);await sl(140)}
+}
+play().catch(e=>{console.error(e);const msg=document.createElement('div');msg.textContent='No se pudo preparar la vista de stickers.';Object.assign(msg.style,{position:'absolute',top:'410px',left:'20px',right:'20px',textAlign:'center',color:'#433'});st.appendChild(msg)});
+
+</script></body></html>
