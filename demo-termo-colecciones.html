@@ -19,7 +19,7 @@ svg.ov{position:absolute;inset:0;pointer-events:none}
  linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,0) 8%,rgba(0,0,0,0) 94%,rgba(0,0,0,.18))}
 
 #sheetbox{transition:opacity .42s}#th{left:33.4px;top:48px;transform:scale(1.82);opacity:0;transition:opacity .42s}#tray{position:absolute;left:28px;right:28px;top:746px;height:184px;border-radius:20px;background:#ded1ba70;box-shadow:inset 0 2px 8px #9b856b35;transition:opacity .4s}.st{transition:left .3s,top .3s,width .3s,height .3s,transform .3s,opacity .3s;filter:drop-shadow(0 2px 2px #0005)}#body canvas{pointer-events:none}
-</style></head><body>
+#th{left:12.6px;top:34px;transform:scale(1.98);transition:opacity .42s,transform .28s;transform-origin:50% 0}#th{left:140px;top:34px}#sheetbox{border-radius:3px}#stage{background:#efe6d4}#sc{font-size:34px}</style></head><body>
 <div id="stage">
  <div id="sheetbox"><img class="sheet" src="" alt=""></div>
  <div id="th">
@@ -46,47 +46,10 @@ svg.ov{position:absolute;inset:0;pointer-events:none}
 </div>
 <script>
 const stage=document.getElementById('stage'),box=document.getElementById('sheetbox'),sheet=box.querySelector('img'),thermo=document.getElementById('th'),body=document.getElementById('body'),sc=document.getElementById('sc');
-const configs={
- 'dragon-ball':{src:'stickers-dragon-ball.jpg',ref:[568,607],regions:[
- [[4,4],[103,3],[130,27],[136,116],[117,158],[0,158],[0,66]],
- [[249,4],[344,2],[361,38],[350,143],[253,149],[244,106]],
- [[364,2],[466,0],[476,155],[354,158],[357,79]],
- [[479,2],[567,0],[567,153],[478,154]],
- [[1,160],[78,160],[78,237],[1,237]],
- [[440,155],[567,155],[567,277],[439,277]],
- [[245,253],[351,253],[359,375],[242,375]],
- [[112,334],[227,335],[234,466],[105,466]],
- [[0,463],[128,463],[128,606],[0,606]],
- [[313,493],[416,493],[416,606],[311,606]]
- ]},
- dexter:{src:'stickers-dexter.png',ref:[568,607],regions:[
- [[0,0],[132,0],[132,131],[0,131]],
- [[139,0],[284,0],[284,132],[139,132]],
- [[287,0],[408,0],[408,132],[287,132]],
- [[411,0],[567,0],[567,132],[411,132]],
- [[1,135],[158,135],[158,263],[1,263]],
- [[161,136],[278,136],[278,262],[161,262]],
- [[422,133],[567,133],[567,269],[422,269]],
- [[1,269],[135,269],[135,374],[1,374]],
- [[1,375],[127,375],[127,482],[1,482]],
- [[285,376],[408,376],[408,482],[285,482]]
- ]},
- snoopy:{src:'stickers-snoopy.png',ref:[300,375],regions:[
- [[0,0],[91,0],[91,90],[0,90]],
- [[94,0],[191,0],[191,102],[94,102]],
- [[213,0],[299,0],[299,97],[213,97]],
- [[0,94],[83,94],[83,192],[0,192]],
- [[214,96],[299,96],[299,167],[214,167]],
- [[0,193],[89,193],[89,267],[0,267]],
- [[92,157],[184,157],[184,254],[92,254]],
- [[190,170],[299,170],[299,229],[190,229]],
- [[0,270],[91,270],[91,322],[0,322]],
- [[97,265],[183,265],[183,324],[97,324]]
- ]}
-};
+const configs={"dragon-ball":{"src":"stickers-dragon-ball.jpg","ref":[568,607],"regions":[[[2,2],[105,2],[132,27],[136,111],[118,158],[2,158]],[[133,2],[244,2],[251,42],[244,155],[138,165],[135,90]],[[247,2],[349,2],[360,42],[347,146],[250,153]],[[358,2],[475,2],[477,154],[350,158],[351,85]],[[478,2],[566,2],[566,154],[478,154]],[[1,164],[77,164],[77,237],[1,237]],[[79,160],[160,160],[160,254],[79,254]],[[162,160],[279,160],[279,258],[162,258]],[[281,153],[365,153],[365,260],[281,260]],[[366,157],[443,157],[443,264],[366,264]],[[443,155],[566,155],[566,278],[443,278]],[[1,243],[155,243],[157,305],[117,338],[59,339],[45,306],[1,300]],[[163,260],[242,260],[242,337],[163,337]],[[244,254],[354,254],[354,375],[244,375]],[[358,262],[453,262],[453,351],[358,351]],[[460,280],[565,280],[565,384],[534,377],[452,379],[443,344]],[[1,316],[93,321],[128,443],[121,462],[1,462]],[[111,338],[225,334],[234,465],[106,467]],[[227,378],[351,378],[351,483],[227,483]],[[353,359],[441,359],[441,484],[353,484]],[[444,367],[565,367],[565,489],[444,489]],[[1,465],[129,465],[129,606],[1,606]],[[132,473],[221,473],[221,592],[132,592]],[[224,487],[308,487],[308,605],[224,605]],[[310,493],[415,493],[415,605],[310,605]],[[417,485],[566,485],[566,605],[417,605]]]},"dexter":{"src":"stickers-dexter.png","ref":[568,607],"regions":[[[2,2],[132,2],[132,131],[2,131]],[[139,2],[284,2],[284,132],[139,132]],[[287,2],[408,2],[408,132],[287,132]],[[411,2],[566,2],[566,132],[411,132]],[[1,135],[158,135],[158,263],[1,263]],[[161,136],[278,136],[278,262],[161,262]],[[280,136],[420,136],[420,263],[280,263]],[[422,133],[566,133],[566,269],[422,269]],[[1,269],[135,269],[135,374],[1,374]],[[137,266],[339,266],[339,374],[137,374]],[[341,268],[483,268],[483,374],[341,374]],[[485,270],[566,270],[566,365],[485,365]],[[1,375],[127,375],[127,482],[1,482]],[[130,375],[281,375],[281,482],[130,482]],[[285,376],[408,376],[408,482],[285,482]],[[410,366],[566,366],[566,485],[410,485]],[[1,486],[130,486],[130,606],[1,606]],[[132,486],[291,486],[291,606],[132,606]],[[295,486],[421,486],[421,606],[295,606]],[[423,486],[566,486],[566,606],[423,606]]]},"snoopy":{"src":"stickers-snoopy.png","ref":[300,375],"regions":[[[1,1],[89,1],[89,90],[1,90]],[[92,1],[196,1],[196,102],[92,102]],[[211,1],[299,1],[299,98],[211,98]],[[1,94],[82,94],[82,192],[1,192]],[[87,104],[209,104],[209,153],[87,153]],[[212,96],[299,96],[299,167],[212,167]],[[1,193],[89,193],[89,267],[1,267]],[[91,157],[185,157],[185,257],[91,257]],[[189,170],[299,170],[299,226],[189,226]],[[1,270],[90,270],[90,323],[1,323]],[[94,265],[184,265],[184,324],[94,324]],[[190,263],[299,263],[299,328],[190,328]],[[1,325],[83,325],[83,374],[1,374]],[[84,329],[211,329],[211,374],[84,374]],[[247,343],[299,343],[299,374],[247,374]]]},"garfield":{"src":"stickers-garfield.png","ref":[300,375],"regions":[[[1,1],[72,1],[72,101],[1,101]],[[76,1],[174,1],[174,95],[76,95]],[[177,1],[299,1],[299,86],[177,86]],[[1,103],[97,103],[97,175],[1,175]],[[99,94],[202,94],[202,146],[99,146]],[[204,92],[297,92],[297,165],[204,165]],[[1,178],[87,178],[87,241],[1,241]],[[92,147],[222,147],[222,219],[92,219]],[[224,169],[299,169],[299,222],[224,222]],[[1,242],[98,242],[98,297],[1,297]],[[101,224],[191,224],[191,300],[101,300]],[[193,224],[299,224],[299,291],[193,291]],[[1,299],[100,299],[100,374],[1,374]],[[104,302],[199,302],[199,374],[104,374]],[[201,296],[299,296],[299,374],[201,374]]]}};
 const cfg=configs[new URLSearchParams(location.search).get('coleccion')];const sleep=ms=>new Promise(r=>setTimeout(r,ms));const frame=()=>new Promise(r=>requestAnimationFrame(r));
 function fit(){stage.style.transform='scale('+Math.min(innerWidth/540,innerHeight/960)+')'}addEventListener('resize',fit);fit();
-const tray=document.createElement('div');tray.id='tray';stage.appendChild(tray);
+
 function crop(region,source){const scaleX=source.width/cfg.ref[0],scaleY=source.height/cfg.ref[1],poly=region.map(([x,y])=>[x*scaleX,y*scaleY]);const x=Math.floor(Math.min(...poly.map(p=>p[0]))),y=Math.floor(Math.min(...poly.map(p=>p[1]))),w=Math.min(source.width-x,Math.ceil(Math.max(...poly.map(p=>p[0]))-x)),h=Math.min(source.height-y,Math.ceil(Math.max(...poly.map(p=>p[1]))-y));
  const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.beginPath();poly.forEach(([px,py],i)=>i?ctx.lineTo(px-x,py-y):ctx.moveTo(px-x,py-y));ctx.closePath();ctx.clip();ctx.drawImage(source,-x,-y);
  const pix=ctx.getImageData(0,0,w,h),d=pix.data,N=w*h,seen=new Uint8Array(N),q=new Int32Array(N);let start=0,end=0;
@@ -96,24 +59,43 @@ function crop(region,source){const scaleX=source.width/cfg.ref[0],scaleY=source.
  for(let p=0;p<N;p++)if(seen[p])d[4*p+3]=0;ctx.putImageData(pix,0,0);
  return {src:c.toDataURL('image/png'),x,y,w,h,poly};
 }
-function trace(s,geometry){return new Promise(resolve=>{const {sx,sy,left,top}=geometry,pts=s.poly.map(([x,y])=>[x*sx,y*sy]),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','ov');svg.setAttribute('viewBox','0 0 '+box.clientWidth+' '+box.clientHeight);svg.style.width='100%';svg.style.height='100%';const p=document.createElementNS(svg.namespaceURI,'path');p.setAttribute('d','M'+pts.map(a=>a.join(',')).join(' L')+' Z');p.setAttribute('fill','none');p.setAttribute('stroke','#e63946');p.setAttribute('stroke-width','2.5');p.setAttribute('pathLength','1');p.setAttribute('stroke-dasharray','0 1');svg.appendChild(p);box.appendChild(svg);sc.style.display='block';const length=p.getTotalLength(),t0=performance.now();function f(now){const t=Math.min(1,(now-t0)/550);p.setAttribute('stroke-dasharray',t+' 1');const a=p.getPointAtLength(length*t);sc.style.left=(left+a.x-17)+'px';sc.style.top=(top+a.y-17)+'px';sc.style.transform='rotate('+Math.sin(now/60)*18+'deg)';if(t<1)requestAnimationFrame(f);else{svg.remove();sc.style.display='none';resolve()}}requestAnimationFrame(f)})}
+function trace(s,geometry){return new Promise(resolve=>{const {sx,sy,left,top}=geometry,pts=s.poly.map(([x,y])=>[x*sx,y*sy]),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','ov');svg.setAttribute('viewBox','0 0 '+box.clientWidth+' '+box.clientHeight);svg.style.width='100%';svg.style.height='100%';const p=document.createElementNS(svg.namespaceURI,'path');p.setAttribute('d','M'+pts.map(a=>a.join(',')).join(' L')+' Z');p.setAttribute('fill','none');p.setAttribute('stroke','#e63946');p.setAttribute('stroke-width','2.5');p.setAttribute('pathLength','1');p.setAttribute('stroke-dasharray','0 1');svg.appendChild(p);box.appendChild(svg);sc.style.display='block';const length=p.getTotalLength(),t0=performance.now();function f(now){const t=Math.min(1,(now-t0)/360);p.setAttribute('stroke-dasharray',t+' 1');const a=p.getPointAtLength(length*t);sc.style.left=(left+a.x-17)+'px';sc.style.top=(top+a.y-17)+'px';sc.style.transform='rotate('+Math.sin(now/60)*18+'deg)';if(t<1)requestAnimationFrame(f);else{svg.remove();sc.style.display='none';resolve()}}requestAnimationFrame(f)})}
 function item(s){const im=new Image();im.src=s.src;im.className='st';im.style.objectFit='contain';return im}
 function set(im,x,y,w,h,angle=0){Object.assign(im.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px',transform:'rotate('+angle+'deg)'})}
-function cutHole(s,g){const h=document.createElement('div');h.className='hole';Object.assign(h.style,{inset:'0',border:'0',borderRadius:'0',clipPath:'polygon('+s.poly.map(([x,y])=>(x*g.sx)+'px '+(y*g.sy)+'px').join(',')+')'});box.appendChild(h)}
+function cutHole(s,g){const hole=document.createElement('div');hole.className='hole';Object.assign(hole.style,{left:s.x*g.sx+'px',top:s.y*g.sy+'px',width:s.w*g.sx+'px',height:s.h*g.sy+'px',border:'0',borderRadius:'0',background:'#e1d8c8',maskImage:'url('+s.src+')',maskSize:'100% 100%',maskRepeat:'no-repeat',webkitMaskImage:'url('+s.src+')',webkitMaskSize:'100% 100%'});box.appendChild(hole)}
+function attach(s,im,u,ty,w,h,r){
+ const S=3,a=r*Math.PI/180,bw=Math.abs(w*Math.cos(a))+Math.abs(h*Math.sin(a)),bh=Math.abs(w*Math.sin(a))+Math.abs(h*Math.cos(a));
+ const o=document.createElement('canvas');o.width=Math.ceil(bw*S);o.height=Math.ceil(bh*S);const c=o.getContext('2d');c.translate(o.width/2,o.height/2);c.rotate(a);c.drawImage(im,-w*S/2,-h*S/2,w*S,h*S);
+ const cv=document.createElement('canvas');cv.width=150*S;cv.height=o.height;const g=cv.getContext('2d'),R=75;
+ for(let dx=0;dx<cv.width;dx++){const xd=(dx+.5)/S-R;if(Math.abs(xd)>=R*.995)continue;const th=Math.asin(xd/R),cs=Math.cos(th),sx=(R*th-u+bw/2)*S-.5/cs;if(sx>=0&&sx+1/cs<=o.width)g.drawImage(o,sx,0,1/cs,o.height,dx,0,1,o.height)}
+ cv.style.width='150px';cv.style.height=bh+'px';cv.style.top=(ty-105-bh/2)+'px';body.appendChild(cv);return cv;
+}
 async function play(){
- if(!cfg)throw Error('Colección no válida');sheet.src=cfg.src;await sheet.decode();const src=document.createElement('canvas');src.width=sheet.naturalWidth;src.height=sheet.naturalHeight;src.getContext('2d').drawImage(sheet,0,0);
- const ratio=Math.min(462/src.width,660/src.height),w=Math.round(src.width*ratio),h=Math.round(src.height*ratio),g={sx:w/src.width,sy:h/src.height,left:(540-w)/2,top:35};Object.assign(box.style,{left:g.left+'px',top:g.top+'px',width:w+'px',height:h+'px'});
- const stickers=cfg.regions.map(p=>crop(p,src));const imgs=stickers.map(item);await Promise.all(imgs.map(im=>im.decode()));thermo.style.opacity=0;await sleep(300);
- // Primera escena: plancha grande, recorte y traslado a la bandeja.
- for(let i=0;i<stickers.length;i++){const s=stickers[i],im=imgs[i];await trace(s,g);cutHole(s,g);set(im,g.left+s.x*g.sx,g.top+s.y*g.sy,s.w*g.sx,s.h*g.sy);stage.appendChild(im);await frame();await frame();const cell=88,cy=755+Math.floor(i/5)*92;set(im,38+(i%5)*93,cy,cell,82,(i%2?3:-3));await sleep(320)}
- await sleep(300);box.style.opacity=0;tray.style.opacity=0;imgs.forEach(im=>im.style.opacity=0);await sleep(420);box.style.display='none';tray.style.display='none';
- // Segunda escena: termo grande, se completa de arriba hacia abajo.
- thermo.style.opacity=1;await sleep(450);
- const T=1.82,TX=(540-260*T)/2,TY=48;
- for(let i=0;i<stickers.length;i++){const s=stickers[i],im=imgs[i],row=Math.floor(i/2),col=i%2,u=col?36:-36,ty=138+row*62,r=(col?5:-5),angle=r*Math.PI/180;
- const maxW=76,maxH=60,ww=Math.min(maxW,maxH*s.w/s.h),hh=ww*s.h/s.w;
- const startX=col?446:8,startY=190+row*106;im.style.transition='none';set(im,startX,startY,86,86,r);im.style.opacity=1;await frame();await frame();im.style.transition='left .58s cubic-bezier(.2,.7,.2,1),top .58s cubic-bezier(.2,.7,.2,1),width .58s,height .58s,transform .58s,opacity .2s';set(im,TX+(130+u-ww/2)*T,TY+(ty-hh/2)*T,ww*T,hh*T,r);await sleep(610);
- const cv=document.createElement('canvas'),S=3;cv.width=150*S;cv.height=Math.ceil((hh+10)*S);const ctx=cv.getContext('2d');ctx.scale(S,S);ctx.translate(75+u,(hh+10)/2);ctx.rotate(angle);ctx.drawImage(im,-ww/2,-hh/2,ww,hh);cv.style.width='150px';cv.style.height=(hh+10)+'px';cv.style.top=(ty-105-(hh+10)/2)+'px';body.appendChild(cv);await frame();cv.style.opacity=1;im.style.opacity=0;await sleep(180)}
+ if(!cfg)throw Error('Colección no válida');sheet.src=cfg.src;await sheet.decode();
+ const src=document.createElement('canvas');src.width=sheet.naturalWidth;src.height=sheet.naturalHeight;src.getContext('2d').drawImage(sheet,0,0);
+ const ratio=Math.min(510/src.width,900/src.height),w=Math.round(src.width*ratio),h=Math.round(src.height*ratio),g={sx:w/src.width,sy:h/src.height,left:(540-w)/2,top:(960-h)/2};
+ Object.assign(box.style,{left:g.left+'px',top:g.top+'px',width:w+'px',height:h+'px'});thermo.style.opacity=0;
+ const stickers=cfg.regions.map(p=>crop(p,src)),imgs=stickers.map(item);await Promise.all(imgs.map(im=>im.decode()));await sleep(350);
+ // Pantalla 1: plancha a pantalla completa. Cada sticker se levanta y sale de escena.
+ for(let i=0;i<stickers.length;i++){const s=stickers[i],im=imgs[i];await trace(s,g);cutHole(s,g);im.style.transition='none';set(im,g.left+s.x*g.sx,g.top+s.y*g.sy,s.w*g.sx,s.h*g.sy);im.style.opacity=1;stage.appendChild(im);await frame();await frame();
+ im.style.transition='transform .3s ease,opacity .3s';im.style.transform='scale(1.13) rotate('+(i%2?4:-4)+'deg)';await sleep(100);im.style.opacity=0;await sleep(220)}
+ await sleep(300);box.style.opacity=0;await sleep(420);box.style.display='none';
+ // Pantalla 2: termo a pantalla completa. Se aprovechan las distintas caras del cilindro.
+ thermo.style.opacity=1;await sleep(350);
+ const T=1.98,TX=(540-260*T)/2,TY=34,faces=Math.ceil(stickers.length/10),perFace=Math.ceil(stickers.length/faces);
+ const panels=[];
+ for(let i=0;i<stickers.length;i++){
+ const face=Math.floor(i/perFace),j=i%perFace,count=Math.min(perFace,stickers.length-face*perFace),rows=Math.ceil(count/2),row=Math.floor(j/2),col=j%2;
+ if(j===0&&i>0){panels.push(Array.from(body.querySelectorAll('canvas')));thermo.style.transition='transform .28s ease';thermo.style.transform='scale(1.98) scaleX(.14)';await sleep(280);panels.at(-1).forEach(c=>c.style.display='none');thermo.style.transform='scale(1.98) scaleX(1)';await sleep(300)}
+ const s=stickers[i],im=imgs[i],solo=j===count-1&&count%2===1,u=solo?0:col?36:-36,ty=108+(row+.5)*308/rows,r=solo?0:col?3:-3,ww=Math.min(solo?116:76,(308/rows-6)*s.w/s.h),hh=ww*s.h/s.w;
+ im.style.transition='none';set(im,col?465:-15,TY+(ty-40)*T,ww*T,hh*T,r);im.style.opacity=1;await frame();await frame();
+ im.style.transition='left .48s cubic-bezier(.2,.7,.2,1),top .48s cubic-bezier(.2,.7,.2,1),width .48s,height .48s,transform .48s,opacity .18s';
+ set(im,TX+(130+u-ww/2)*T,TY+(ty-hh/2)*T,ww*T,hh*T,r);await sleep(520);
+ const cv=attach(s,im,u,ty,ww,hh,r);await frame();cv.style.opacity=1;im.style.opacity=0;await sleep(140)
+ }
+ // Volver a mostrar cada cara decorada sin salir de la escena del termo.
+ const all=Array.from(body.querySelectorAll('canvas'));const groups=[];for(let i=0;i<all.length;i+=perFace)groups.push(all.slice(i,i+perFace));
+ await sleep(800);for(let j=0;j<groups.length-1;j++){thermo.style.transition='transform .28s ease';thermo.style.transform='scale(1.98) scaleX(.14)';await sleep(280);all.forEach(c=>c.style.display='none');groups[j].forEach(c=>c.style.display='block');thermo.style.transform='scale(1.98) scaleX(1)';await sleep(1100)}
 }
 play().catch(e=>{console.error(e);sc.style.display='none';const msg=document.createElement('div');msg.textContent='No se pudo cargar la animación.';Object.assign(msg.style,{position:'absolute',top:'450px',left:'20px',right:'20px',textAlign:'center',color:'#433'});stage.appendChild(msg)});
 </script></body></html>
