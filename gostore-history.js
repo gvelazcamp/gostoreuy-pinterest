@@ -1,0 +1,37 @@
+(()=>{'use strict';
+const cfg=window.GOSTORE_PAYPAL||{},endpoint=new URL('/functions/v1/gostoreuy-history',cfg.endpoint),pdfEndpoint=new URL('/functions/v1/gostoreuy-stickers-pdf',cfg.endpoint);
+const SESSION='gostoreuy-history-session-v1',money=n=>new Intl.NumberFormat('es-UY',{style:'currency',currency:'USD'}).format(n/100),el=(tag,cls,t)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(t!==undefined)n.textContent=t;return n};
+const button=(label,fn,cls='go-back')=>{const b=el('button',cls,label);b.type='button';b.addEventListener('click',fn);return b};
+let session=null,claim=null,email='',busy=false;
+try{session=JSON.parse(sessionStorage.getItem(SESSION)||'null');if(!session||session.expiresAt<=Date.now())session=null}catch{}
+const saveSession=s=>{session=s;try{if(s)sessionStorage.setItem(SESSION,JSON.stringify(s));else sessionStorage.removeItem(SESSION)}catch{}};
+const dialog=el('dialog','go-cart-dialog go-history-dialog');dialog.setAttribute('aria-labelledby','go-history-title');
+const bar=el('div','go-cart-bar'),heading=el('h2','','Mis compras');heading.id='go-history-title';const close=button('×',()=>dialog.close(),'go-close');close.setAttribute('aria-label','Cerrar');bar.append(heading,close);
+const content=el('div','go-history-content'),status=el('p','go-payment-note');status.setAttribute('role','status');dialog.append(bar,content,status);document.body.append(dialog);
+dialog.addEventListener('close',()=>{claim=null;status.textContent=''});
+const say=t=>status.textContent=t;
+async function api(action,extra={}){const r=await fetch(endpoint.href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,session:session?.session,...extra})});const d=await r.json();if(!r.ok){if(r.status===401&&action!=='verify')saveSession(null);throw Error(d.error||'No se pudo completar la operación.')}return d}
+async function run(fn,b){if(busy)return;busy=true;if(b)b.disabled=true;say('');try{await fn()}catch(e){say(e.message||'Volvé a intentarlo.')}finally{busy=false;if(b)b.disabled=false}}
+function intro(){content.replaceChildren();content.append(el('p','go-cart-note',claim?'Guardá este pedido y recuperalo cuando quieras. No necesitás contraseña.':'Verificá tu correo para consultar tus pedidos y descargar los diseños que ya compraste.'));
+ const form=el('form','go-history-form'),label=el('label','','Correo electrónico'),input=el('input');input.type='email';input.required=true;input.maxLength=254;input.autocomplete='email';input.placeholder='tu@email.com';input.value=email;label.append(input);const submit=el('button','go-checkout','Enviar código');submit.type='submit';form.append(label,submit);
+ form.addEventListener('submit',e=>{e.preventDefault();email=input.value.trim().toLowerCase();run(async()=>{await api('send',{email});codeForm();say('Revisá tu correo, incluida la carpeta de spam.')},submit)});content.append(form,el('small','go-digital','Tu correo se utiliza para verificar y recuperar compras; no te suscribe a promociones.'));
+}
+function codeForm(){content.replaceChildren();content.append(el('p','go-cart-note','Ingresá el código que recibiste en '+email+'.'));const form=el('form','go-history-form'),label=el('label','','Código de verificación'),input=el('input');input.type='text';input.inputMode='numeric';input.autocomplete='one-time-code';input.pattern='[0-9]{6,10}';input.maxLength=10;input.required=true;label.append(input);const submit=el('button','go-checkout','Verificar correo');submit.type='submit';form.append(label,submit);
+ form.addEventListener('submit',e=>{e.preventDefault();run(async()=>{const d=await api('verify',{email,code:input.value.trim()});saveSession(d);await loadHistory()},submit)});
+ content.append(form,button('Cambiar correo / pedir otro código',intro));
+}
+async function loadHistory(){
+ if(!session||session.expiresAt<=Date.now()){saveSession(null);intro();return}
+ if(claim){const p=claim;await api('claim',{orderId:p.orderId,receiptToken:p.token});claim=null;say('¡Pedido guardado en tu historial!')}
+ const d=await api('list');content.replaceChildren();
+ const summary=el('div','go-history-summary');summary.append(el('strong','',d.email),el('span','',d.count+' pedido(s) · '+money(d.totalCents)),el('small','go-digital','Compras de prueba · sin dinero real'));content.append(summary);
+ if(!d.orders.length)content.append(el('p','go-cart-note','Todavía no tenés pedidos asociados a este correo.'));
+ if(d.truncated)content.append(el('small','go-digital','Se muestran los últimos 500 pedidos.'));
+ for(const order of d.orders){const card=el('article','go-history-order');card.append(el('strong','','Pedido '+order.orderId),el('small','go-digital',new Date(order.confirmedAt).toLocaleString('es-UY')+' · '+money(order.totalCents)));const list=el('ul');for(const item of order.items)list.append(el('li','',item.title+(item.cents===null?'':' · '+money(item.cents))));card.append(list);if(order.items.some(i=>i.downloadable)){card.append(button('Descargar compra completa (PDF)',()=>run(()=>download(order,'package')),'go-add'));for(const item of order.items.filter(i=>i.downloadable))card.append(button('PDF solo lámina · '+item.title,()=>run(()=>download(order,'sheet',item.id)),'go-back'))}content.append(card)}
+ content.append(button('Cerrar sesión',()=>{saveSession(null);claim=null;email='';intro();say('Sesión cerrada.')}));
+}
+async function download(order,action,productId){const token=await api('download',{orderId:order.orderId});const r=await fetch(pdfEndpoint.href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,orderId:token.orderId,token:token.token,productId})});if(!r.ok){const d=await r.json();throw Error(d.error||'No se pudo descargar el PDF.')}if(!r.headers.get('Content-Type')?.includes('application/pdf'))throw Error('Formato inesperado');const url=URL.createObjectURL(await r.blob()),a=el('a');a.href=url;a.download=r.headers.get('Content-Disposition')?.match(/filename="([A-Za-z0-9.-]+\.pdf)"/)?.[1]||'GoStoreUY.pdf';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
+function open(p){claim=p||null;heading.textContent=claim?'Guardar mis compras':'Mis compras';say('');if(!dialog.open)dialog.showModal();if(session&&session.expiresAt>Date.now()){content.replaceChildren(el('p','go-cart-note','Consultando tus compras…'));run(loadHistory).then(()=>{if(!session)intro();else if(!content.querySelector('.go-history-summary')){content.append(button('Volver a verificar correo',()=>{saveSession(null);intro()}))}})}else{saveSession(null);intro()}}
+window.GoStoreHistory={offer(panel,p){if(!p?.orderId||!p?.token||panel.querySelector('.go-history-offer'))return;const offer=el('section','go-history-offer');offer.append(el('strong','','¿Querés conservar todas tus compras?'),el('p','go-cart-note','Guardá tus pedidos con tu correo y recuperá tus archivos cuando quieras.'),button('Guardar mis compras',()=>open(p),'go-checkout'),button('Ahora no, gracias',()=>offer.remove()),el('small','go-digital','Opcional · sin contraseña'));panel.append(offer)}};
+const nav=document.querySelector('.site-nav');if(nav){const b=button('Mis compras',()=>open(null),'go-cart-toggle');b.setAttribute('aria-label','Ver mis compras');nav.insertBefore(b,nav.querySelector('.go-cart-toggle')||null)}
+})();
