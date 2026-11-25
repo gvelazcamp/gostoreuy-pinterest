@@ -65,11 +65,32 @@ window.addEventListener('storage',e=>{if(e.key===KEY){cart=load();render()}});
 async function paymentApi(payload){const response=await fetch(paypalCfg.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await response.json();if(!response.ok)throw Error(data.error||'Error de conexión');return data}
 async function startPayment(){if(!paypalReady||paymentBusy||!cart.size)return;paymentBusy=true;paymentMessage='Preparando tu pago de prueba…';render();try{const ids=[...cart],d=await paymentApi({action:'create',ids}),u=new URL(d.approval);if(u.protocol!=='https:'||u.hostname!=='www.sandbox.paypal.com'||d.mode!=='sandbox')throw Error('Pago no autorizado');sessionStorage.setItem(PAY_KEY,JSON.stringify({orderId:d.orderId,token:d.token,ids}));location.assign(u.href)}catch(e){paymentMessage=e.message||'No se pudo iniciar el pago';paymentBusy=false;render()}}
 async function finishPayment(){const url=new URL(location.href),state=url.searchParams.get('paypal');if(!['return','cancel'].includes(state))return;const returned=url.searchParams.get('token');for(const k of ['paypal','token','PayerID'])url.searchParams.delete(k);history.replaceState(null,'',url);open('checkout');if(state==='cancel'){sessionStorage.removeItem(PAY_KEY);paymentMessage='Pago de prueba cancelado. Tu carrito sigue intacto.';render();return}if(!paypalReady){paymentMessage='PayPal todavía no está configurado.';render();return}try{const saved=JSON.parse(sessionStorage.getItem(PAY_KEY)||'null');if(!saved||returned!==saved.orderId)throw Error('No se encontró la sesión de pago original.');paymentBusy=true;paymentMessage='Verificando pago de prueba…';render();const d=await paymentApi({action:'capture',orderId:returned,token:saved.token});if(d.status!=='COMPLETED'||d.mode!=='sandbox')throw Error('Pago pendiente de confirmar.');for(const id of saved.ids)cart.delete(id);persist();sessionStorage.removeItem(PAY_KEY);mode='cart';receipt={orderId:saved.orderId,token:saved.token,hasStickers:saved.ids.some(id=>id.startsWith('Stickers:'))};if(receipt.hasStickers){try{sessionStorage.setItem(RECEIPT_KEY,JSON.stringify(receipt))}catch{}showDelivery(d)}paymentMessage='Pago de prueba confirmado: US$ '+d.total+'. No se cobró dinero real.'+(d.undelivered?' Algunos productos aún no tienen entrega automática.':'');}catch(e){paymentMessage=e.message||'No se pudo verificar el pago'}finally{paymentBusy=false;render()}}
+let pdfBusy=false;
+async function downloadStickerPdf(action,productId,btn){
+ if(!receipt||pdfBusy)return;
+ const original=btn.textContent;pdfBusy=true;btn.disabled=true;btn.textContent='Preparando PDF…';
+ try{
+  const endpoint=new URL('/functions/v1/gostoreuy-stickers-pdf',paypalCfg.endpoint);
+  const response=await fetch(endpoint.href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,orderId:receipt.orderId,token:receipt.token,productId})});
+  if(!response.ok){let e;try{e=await response.json()}catch{}throw Error(e?.error||'No se pudo descargar el PDF')}
+  if(!response.headers.get('Content-Type')?.includes('application/pdf'))throw Error('Formato de descarga inesperado');
+  const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');
+  const suggested=response.headers.get('Content-Disposition')?.match(/filename="([A-Za-z0-9.-]+\.pdf)"/)?.[1];
+  a.href=url;a.download=suggested||(action==='package'?'GoStoreUY-pedido.pdf':'GoStoreUY-lamina.pdf');document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ }catch(e){announce(e.message||'No se pudo descargar el PDF')}finally{pdfBusy=false;btn.disabled=false;btn.textContent=original}
+}
+function pdfButton(label,action,productId,primary=false){const b=button(label,primary?'go-checkout go-paypal':'go-back',()=>downloadStickerPdf(action,productId,b));b.style.display='block';b.style.width='100%';b.style.marginTop='8px';return b}
 function showDelivery(d){
  deliveryPanel.replaceChildren();deliveryPanel.hidden=false;
  deliveryPanel.append(el('strong','','¡Gracias por tu compra de prueba!'));
  const links=Array.isArray(d.downloads)?d.downloads:[];
- for(const item of links){try{const u=new URL(item.url),endpoint=new URL(paypalCfg.endpoint);if(u.origin!==endpoint.origin||!u.pathname.startsWith('/storage/v1/object/sign/stickers-originales/')||!u.searchParams.has('token'))continue;const a=el('a','go-add','Descargar '+item.title);a.href=u.href;a.style.display='block';a.style.marginTop='8px';a.style.textAlign='center';a.rel='noreferrer';deliveryPanel.append(a)}catch{}}
+ if(links.length){
+ deliveryPanel.append(pdfButton('Descargar compra completa (PDF)','package',undefined,true));
+ deliveryPanel.append(el('small','','Comprobante + agradecimiento + láminas compradas.'));
+ for(const item of links)deliveryPanel.append(pdfButton('PDF solo lámina · '+item.title,'sheet',item.id));
+ deliveryPanel.append(el('small','','Solo lámina: lista para imprimir y recortar, sin hojas extras.'));
+ }
+ for(const item of links){try{const u=new URL(item.url),endpoint=new URL(paypalCfg.endpoint);if(u.origin!==endpoint.origin||!u.pathname.startsWith('/storage/v1/object/sign/stickers-originales/')||!u.searchParams.has('token'))continue;const a=el('a','go-add','Imagen original · '+item.title);a.href=u.href;a.style.display='block';a.style.marginTop='8px';a.style.textAlign='center';a.rel='noreferrer';deliveryPanel.append(a)}catch{}}
  if(d.deliveryPending)deliveryPanel.append(el('p','','El pago está confirmado. La descarga está pendiente; podés reintentar sin pagar de nuevo.'));
  if(links.length)deliveryPanel.append(el('small','','Enlaces privados válidos durante 15 minutos.'));
  if(d.undelivered)deliveryPanel.append(el('small','','Las demás categorías todavía no tienen entrega automática.'));
