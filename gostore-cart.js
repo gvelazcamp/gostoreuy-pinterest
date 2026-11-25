@@ -8,7 +8,7 @@ function register(card,category,cents,opts={}){
  if(!title||!img)return;
  const id=category+':'+img, target=opts.target||card.querySelector('.shop-details,.sticker-collection-info,.pa-destination-info')||card;
  if(products.has(id))return;
- const p={id,title,category,cents,img};products.set(id,p);
+ const p={id,title,category,cents,img,count:opts.count||1};products.set(id,p);
  const status=target.querySelector('.shop-status');if(status)status.hidden=true;
  const panel=el('div','go-buy-panel'),price=el('strong','go-price',money(cents)),caption=el('small','go-digital','Archivo digital · No incluye producto físico');
  const actions=el('div','go-buy-actions'),add=button('Agregar al carrito','go-add',()=>addProduct(id,false)),buy=button('Comprar','go-buy',()=>addProduct(id,true));
@@ -21,16 +21,18 @@ function placeholder(card,cents){
 }
 document.querySelectorAll('#coleccion-stickers .sticker-collection-card').forEach(c=>register(c,'Stickers',299));
 document.querySelectorAll('#cuadernos article.card').forEach(c=>register(c,'Hojas ilustradas',199));
-document.querySelectorAll('#colorear .book-card').forEach(c=>register(c,'Libros para colorear',499));
+document.querySelectorAll('#colorear .book-card').forEach(c=>register(c,'Libros para colorear',499,{count:10}));
 document.querySelectorAll('#galeria .remera-extra, #galeria .taza-extra').forEach(c=>register(c,c.classList.contains('taza-extra')?'Tazas':'Remeras',c.classList.contains('taza-extra')?249:399));
 register(document.querySelector('#producto-remeras'),'Remeras',399,{title:'Tom y Jerry'});
 placeholder(document.querySelector('#producto-tazas'),249);
 placeholder(document.querySelector('#producto-biblioratos'),199);
-const pets=document.querySelector('#rv-mascotas .rv-layout>div:first-child');register(pets,'Dibujá y revelá',499,{title:'Mascotas tiernas · Colección'});
+const pets=document.querySelector('#rv-mascotas .rv-layout>div:first-child');register(pets,'Dibujá y revelá',499,{title:'Mascotas tiernas · Colección',count:20});
 const waterfall=document.querySelector('#paisajes-antiestres .pa-controls');register(waterfall,'Dibujá y revelá',199,{title:'Valle de las cascadas',img:'assets/paisaje-a4-guia.webp'});
 document.querySelectorAll('.pa-destination').forEach(c=>register(c,'Dibujá y revelá',199));
 function load(){try{const raw=JSON.parse(localStorage.getItem(KEY)||'[]');return new Set(Array.isArray(raw)?raw.filter(id=>products.has(id)):[])}catch{return new Set()}}
 let cart=load(),mode='cart';
+const petPack=document.getElementById('go-pet-pack-select'),petId=[...products.values()].find(p=>p.count===20&&p.category==='Dibujá y revelá')?.id;
+if(petPack&&petId)petPack.addEventListener('click',()=>{if(cart.has(petId)){cart.delete(petId);persist();render()}else addProduct(petId,false)});
 const header=document.querySelector('.site-nav'),toggle=button('','go-cart-toggle',()=>open('cart'));toggle.setAttribute('aria-label','Abrir carrito de compras');header?.append(toggle);
 const toast=el('div','go-toast');toast.setAttribute('role','status');document.body.append(toast);let toastTimer;
 function announce(msg){toast.textContent=msg;toast.classList.add('go-show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('go-show'),2600)}
@@ -46,9 +48,10 @@ dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoun
 function persist(){try{localStorage.setItem(KEY,JSON.stringify([...cart]))}catch{}}
 function render(){
  toggle.textContent='🛒 Carrito ('+cart.size+')';
+ if(petPack&&petId){const selected=cart.has(petId);petPack.setAttribute('aria-pressed',String(selected));petPack.querySelector('span').firstChild.textContent=selected?'✓ Pack seleccionado':'Seleccionar pack completo'}
  for(const [id,b] of views){b.textContent=cart.has(id)?'✓ En carrito':'Agregar al carrito';b.setAttribute('aria-pressed',String(cart.has(id)))}
  list.replaceChildren();let sum=0;
- for(const id of cart){const p=products.get(id);if(!p)continue;sum+=p.cents;const row=el('div','go-cart-item');const img=el('img');img.src=p.img;img.alt='';const info=el('div','go-cart-info');info.append(el('strong','',p.title),el('small','',p.category+' · Digital'));const end=el('div','go-cart-end');end.append(el('strong','',money(p.cents)));const remove=button('Quitar','go-remove',()=>{cart.delete(id);persist();render()});remove.setAttribute('aria-label','Quitar '+p.title);end.append(remove);row.append(img,info,end);list.append(row)}
+ for(const id of cart){const p=products.get(id);if(!p)continue;sum+=p.cents;const row=el('div','go-cart-item');const img=el('img');img.src=p.img;img.alt='';const info=el('div','go-cart-info');info.append(el('strong','',p.title),el('small','',p.category+' · Digital'+(p.count>1?' · ×'+p.count+' diseños':'')));const end=el('div','go-cart-end');end.append(el('strong','',money(p.cents)));const remove=button('Quitar','go-remove',()=>{cart.delete(id);persist();render()});remove.setAttribute('aria-label','Quitar '+p.title);end.append(remove);row.append(img,info,end);list.append(row)}
  if(!cart.size)list.append(el('p','go-empty','Todavía no agregaste diseños al carrito.'));
  total.textContent=money(sum);heading.textContent=mode==='checkout'?'Resumen de compra':'Tu carrito';payNote.textContent=mode==='checkout'?'Próximamente: pago seguro con PayPal. Esta es una vista previa; no se realizará ningún cobro.':'Compra en demostración: PayPal todavía no está conectado.';
  buyAll.textContent=mode==='checkout'?'Pagar con PayPal · Próximamente':'Comprar';buyAll.disabled=!cart.size||mode==='checkout';back.textContent=mode==='checkout'?'Volver al carrito':'Seguir explorando';
