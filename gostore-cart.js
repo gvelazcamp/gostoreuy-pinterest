@@ -30,7 +30,9 @@ const pets=document.querySelector('#rv-mascotas .rv-layout>div:first-child');reg
 const waterfall=document.querySelector('#paisajes-antiestres .pa-controls');register(waterfall,'Dibujá y revelá',199,{title:'Valle de las cascadas',img:'assets/paisaje-a4-guia.webp'});
 document.querySelectorAll('.pa-destination').forEach(c=>register(c,'Dibujá y revelá',199));
 function load(){try{const raw=JSON.parse(localStorage.getItem(KEY)||'[]');return new Set(Array.isArray(raw)?raw.filter(id=>products.has(id)):[])}catch{return new Set()}}
-let cart=load(),mode='cart';
+let cart=load(),mode='cart',paymentBusy=false,paymentMessage='';
+const paypalCfg=window.GOSTORE_PAYPAL||{},paypalReady=paypalCfg.mode==='sandbox'&&/^https:\/\/[a-z0-9]+\.supabase\.co\/functions\/v1\/gostoreuy-paypal$/.test(paypalCfg.endpoint||'');
+const PAY_KEY='gostoreuy-paypal-sandbox-v1';
 const petPack=document.getElementById('go-pet-pack-select'),petId=[...products.values()].find(p=>p.count===20&&p.category==='Dibujá y revelá')?.id;
 if(petPack&&petId)petPack.addEventListener('click',()=>{if(cart.has(petId)){cart.delete(petId);persist();render()}else addProduct(petId,false)});
 const header=document.querySelector('.site-nav'),toggle=button('','go-cart-toggle',()=>open('cart'));toggle.setAttribute('aria-label','Abrir carrito de compras');header?.append(toggle);
@@ -41,7 +43,7 @@ const bar=el('div','go-cart-bar'),heading=el('h2','','Tu carrito');heading.id='g
 const note=el('p','go-cart-note','Solo archivos digitales para imprimir. No se envían productos físicos.');
 const list=el('div','go-cart-list'),footer=el('div','go-cart-footer'),totalLine=el('div','go-total'),totalLabel=el('span','','Total (USD)'),total=el('strong');totalLine.append(totalLabel,total);
 const payNote=el('p','go-payment-note','Compra en demostración: todavía no se realizan cobros ni se entregan archivos.');
-const buyAll=button('Comprar','go-checkout',()=>{mode='checkout';render()});
+const buyAll=button('Comprar','go-checkout',()=>{if(mode==='checkout'){startPayment();return}mode='checkout';paymentMessage='';render()});
 const back=button('Seguir explorando','go-back',()=>{if(mode==='checkout'){mode='cart';render()}else dialog.close()});
 footer.append(totalLine,payNote,buyAll,back);dialog.append(bar,note,list,footer);document.body.append(dialog);
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()}});
@@ -53,11 +55,14 @@ function render(){
  list.replaceChildren();let sum=0;
  for(const id of cart){const p=products.get(id);if(!p)continue;sum+=p.cents;const row=el('div','go-cart-item');const img=el('img');img.src=p.img;img.alt='';const info=el('div','go-cart-info');info.append(el('strong','',p.title),el('small','',p.category+' · Digital'+(p.count>1?' · ×'+p.count+' diseños':'')));const end=el('div','go-cart-end');end.append(el('strong','',money(p.cents)));const remove=button('Quitar','go-remove',()=>{cart.delete(id);persist();render()});remove.setAttribute('aria-label','Quitar '+p.title);end.append(remove);row.append(img,info,end);list.append(row)}
  if(!cart.size)list.append(el('p','go-empty','Todavía no agregaste diseños al carrito.'));
- total.textContent=money(sum);heading.textContent=mode==='checkout'?'Resumen de compra':'Tu carrito';payNote.textContent=mode==='checkout'?'Próximamente: pago seguro con PayPal. Esta es una vista previa; no se realizará ningún cobro.':'Compra en demostración: PayPal todavía no está conectado.';
- buyAll.textContent=mode==='checkout'?'Pagar con PayPal · Próximamente':'Comprar';buyAll.disabled=!cart.size||mode==='checkout';back.textContent=mode==='checkout'?'Volver al carrito':'Seguir explorando';
+ total.textContent=money(sum);heading.textContent=mode==='checkout'?'Resumen de compra':'Tu carrito';payNote.textContent=paymentMessage||(mode==='checkout'?(paypalReady?'PayPal Sandbox · pago de prueba, sin dinero real. No se entregan archivos.':'PayPal · conexión pendiente. No se realizan cobros.'):'Compra en demostración · PayPal Sandbox');
+ buyAll.textContent=paymentBusy?'Conectando…':mode==='checkout'?(paypalReady?'Pagar con PayPal (prueba)':'Pagar con PayPal · Configuración pendiente'):'Comprar';buyAll.disabled=paymentBusy||!cart.size||(mode==='checkout'&&!paypalReady);buyAll.classList.toggle('go-paypal',mode==='checkout');back.textContent=mode==='checkout'?'Volver al carrito':'Seguir explorando';
 }
-function open(next){mode=next;render();if(!dialog.open)dialog.showModal()}
+function open(next){mode=next;paymentMessage='';render();if(!dialog.open)dialog.showModal()}
 function addProduct(id,checkout){if(!cart.has(id)){cart.add(id);persist();announce('Diseño agregado al carrito')}else if(!checkout){open('cart');return}render();if(checkout)open('checkout')}
 window.addEventListener('storage',e=>{if(e.key===KEY){cart=load();render()}});
-render();
+async function paymentApi(payload){const response=await fetch(paypalCfg.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await response.json();if(!response.ok)throw Error(data.error||'Error de conexión');return data}
+async function startPayment(){if(!paypalReady||paymentBusy||!cart.size)return;paymentBusy=true;paymentMessage='Preparando tu pago de prueba…';render();try{const ids=[...cart],d=await paymentApi({action:'create',ids}),u=new URL(d.approval);if(u.protocol!=='https:'||u.hostname!=='www.sandbox.paypal.com'||d.mode!=='sandbox')throw Error('Pago no autorizado');sessionStorage.setItem(PAY_KEY,JSON.stringify({orderId:d.orderId,token:d.token,ids}));location.assign(u.href)}catch(e){paymentMessage=e.message||'No se pudo iniciar el pago';paymentBusy=false;render()}}
+async function finishPayment(){const url=new URL(location.href),state=url.searchParams.get('paypal');if(!['return','cancel'].includes(state))return;const returned=url.searchParams.get('token');for(const k of ['paypal','token','PayerID'])url.searchParams.delete(k);history.replaceState(null,'',url);open('checkout');if(state==='cancel'){sessionStorage.removeItem(PAY_KEY);paymentMessage='Pago de prueba cancelado. Tu carrito sigue intacto.';render();return}if(!paypalReady){paymentMessage='PayPal todavía no está configurado.';render();return}try{const saved=JSON.parse(sessionStorage.getItem(PAY_KEY)||'null');if(!saved||returned!==saved.orderId)throw Error('No se encontró la sesión de pago original.');paymentBusy=true;paymentMessage='Verificando pago de prueba…';render();const d=await paymentApi({action:'capture',orderId:returned,token:saved.token});if(d.status!=='COMPLETED'||d.mode!=='sandbox')throw Error('Pago pendiente de confirmar.');for(const id of saved.ids)cart.delete(id);persist();sessionStorage.removeItem(PAY_KEY);mode='cart';paymentMessage='Pago de prueba confirmado: US$ '+d.total+'. No se cobró dinero real ni se entregaron archivos.'}catch(e){paymentMessage=e.message||'No se pudo verificar el pago'}finally{paymentBusy=false;render()}}
+render();finishPayment();
 })();
