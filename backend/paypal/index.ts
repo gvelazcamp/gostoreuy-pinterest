@@ -184,6 +184,33 @@ async function verify(token){if(typeof token!=='string'||token.length>12000)thro
 async function access(){const id=Deno.env.get('PAYPAL_CLIENT_ID')?.trim(),secret=Deno.env.get('PAYPAL_CLIENT_SECRET')?.trim();if(!id||!secret)throw Error('Missing PayPal settings');const r=await fetch(BASE+'/v1/oauth2/token',{method:'POST',headers:{Authorization:'Basic '+btoa(id+':'+secret),'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=client_credentials'});const d=await r.json();if(!r.ok||!d.access_token){const code=['invalid_client','invalid_request','unauthorized_client','invalid_grant','unsupported_grant_type','invalid_scope','server_error','temporarily_unavailable'].includes(d.error)?d.error:'unknown';throw Error('PayPal auth failed: HTTP '+r.status+' '+code)}return d.access_token}
 async function paypal(path,token,method='GET',body,requestId){const h={Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=representation'};if(requestId)h['PayPal-Request-Id']=requestId;const r=await fetch(BASE+path,{method,headers:h,...(body===undefined?{}:{body:JSON.stringify(body)})});return {ok:r.ok,data:await r.json()}}
 function verifyAmount(order,total){const u=order.purchase_units;if(!Array.isArray(u)||u.length!==1||u[0].custom_id!=='gostoreuy-sandbox'||u[0].amount?.currency_code!=='USD'||u[0].amount?.value!==cents(total))throw Error('Order mismatch');return u[0]}
+// Private stickers: only signed, completed Sandbox orders can receive download URLs.
+async function deliverStickers(signed,captureId){
+ const ids=signed.ids.filter(id=>id.startsWith('Stickers:'));
+ if(!ids.length)return {delivery:false,downloads:[],deliveryPending:false,undelivered:signed.ids.length};
+ const base=Deno.env.get('SUPABASE_URL'),key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+ if(!base||!key)throw Error('Delivery configuration missing');
+ const h={Authorization:'Bearer '+key,apikey:key,'Content-Type':'application/json'};
+ const receipt=await fetch(base+'/rest/v1/sticker_sandbox_orders?on_conflict=order_id',{method:'POST',headers:{...h,Prefer:'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify({order_id:signed.orderId,capture_id:captureId,total_cents:signed.total,product_ids:signed.ids,mode:'sandbox'})});
+ if(!receipt.ok)throw Error('Receipt storage failed');
+ const downloads=[];
+ for(const id of ids){
+  const q=new URLSearchParams({select:'title,object_path,price_cents',product_id:'eq.'+id,file_ready:'eq.true'});
+  const res=await fetch(base+'/rest/v1/sticker_catalog?'+q,{headers:h});
+  if(!res.ok)throw Error('Sticker catalog lookup failed');
+  const rows=await res.json();
+  if(rows.length!==1||rows[0].price_cents!==CATALOG[id].cents||!/^stickers-[a-z0-9-]+\.(png|jpg)$/.test(rows[0].object_path))throw Error('Sticker not ready');
+  const row=rows[0],path='/object/sign/stickers-originales/'+encodeURIComponent(row.object_path);
+  const sr=await fetch(base+'/storage/v1'+path,{method:'POST',headers:h,body:JSON.stringify({expiresIn:900})});
+  if(!sr.ok)throw Error('Download signing failed');
+  const sd=await sr.json();
+  const relative=sd.signedURL;
+  if(typeof relative!=='string'||!relative.startsWith(path+'?token='))throw Error('Unexpected signed URL');
+  const link=new URL(base+'/storage/v1'+relative);link.searchParams.set('download',row.object_path);
+  downloads.push({id,title:row.title,url:link.href,filename:row.object_path,expiresIn:900});
+ }
+ return {delivery:true,downloads,deliveryPending:false,undelivered:signed.ids.length-ids.length};
+}
 Deno.serve(async req=>{
  if(req.headers.get('origin')!==ORIGIN)return reply({error:'Origen no autorizado'},403);
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
@@ -202,18 +229,20 @@ Deno.serve(async req=>{
  if(!ok||!data.id||!approval||new URL(approval).hostname!=='www.sandbox.paypal.com')throw Error('Order creation failed');
  return reply({orderId:data.id,approval,token:await sign({orderId:data.id,total,ids,exp:Date.now()+3*60*60*1000}),total:cents(total),mode:'sandbox'});
  }
- if(body.action==='capture'){
+ if(body.action==='capture'||body.action==='downloads'){
  let signed;try{signed=await verify(body.token)}catch{return reply({error:'Sesión de pago inválida o vencida'},400)}
  if(body.orderId!==signed.orderId||!/^[A-Z0-9]{8,32}$/.test(signed.orderId))return reply({error:'Pedido inválido'},400);
  const auth=await access(),path='/v2/checkout/orders/'+signed.orderId;
  let result=await paypal(path,auth);
  if(!result.ok)throw Error('Order lookup failed');
  verifyAmount(result.data,signed.total);
- if(result.data.status==='APPROVED'){result=await paypal(path+'/capture',auth,'POST',{},'capture-'+signed.orderId);if(!result.ok)result=await paypal(path,auth)}
+ if(body.action==='capture'&&result.data.status==='APPROVED'){result=await paypal(path+'/capture',auth,'POST',{},'capture-'+signed.orderId);if(!result.ok)result=await paypal(path,auth)}
  if(!result.ok)throw Error('Capture failed');
  const u=verifyAmount(result.data,signed.total),captures=u.payments?.captures||[];
  if(result.data.status!=='COMPLETED'||captures.length!==1||captures[0].status!=='COMPLETED'||captures[0].amount?.currency_code!=='USD'||captures[0].amount?.value!==cents(signed.total))return reply({error:'Pago aún no confirmado'},409);
- return reply({status:'COMPLETED',orderId:signed.orderId,captureId:captures[0].id,total:cents(signed.total),mode:'sandbox',delivery:false});
+ let delivery={delivery:false,downloads:[],deliveryPending:false,undelivered:signed.ids.length};
+ try{delivery=await deliverStickers(signed,captures[0].id)}catch{console.error('Gostoreuy sticker delivery pending');delivery.deliveryPending=true;}
+ return reply({status:'COMPLETED',orderId:signed.orderId,captureId:captures[0].id,total:cents(signed.total),mode:'sandbox',...delivery});
  }
  return reply({error:'Acción inválida'},400);
  }catch(e){console.error('Gostoreuy sandbox checkout:',e instanceof Error?e.message:'unknown');return reply({error:'No se pudo completar el pago de prueba. Volvé a intentarlo.'},502)}
