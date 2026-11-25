@@ -101,6 +101,18 @@ html[data-catalog] .collection-more{display:none}html[data-catalog] .collection-
 #dibuja-revela .rv-hint{font-size:12px;line-height:1.5;margin:9px 0 0}
 #dibuja-revela .rv-status{font-size:12px;color:#ffca79;margin-top:11px}
 @media(max-width:800px){#dibuja-revela .rv-layout{grid-template-columns:1fr}}
+</style><style id="paisaje-a4-css">
+#paisajes-antiestres{margin-top:30px;padding-top:26px;border-top:1px solid #ffffff22;scroll-margin-top:20px}
+#paisajes-antiestres h3{font-size:clamp(24px,3vw,33px);letter-spacing:-.035em;margin:7px 0}
+#paisajes-antiestres .pa-sheet{position:relative;display:block;width:100%;aspect-ratio:297/210;padding:0;border:0;border-radius:6px;background:#fff;perspective:1600px;isolation:isolate;overflow:hidden;box-shadow:0 10px 30px #0006;cursor:pointer}
+#paisajes-antiestres .pa-sheet img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:0;background:#fff;pointer-events:none}
+#paisajes-antiestres .pa-guide{z-index:2;transform-origin:left center;backface-visibility:hidden;transition:transform .85s cubic-bezier(.22,.72,.18,1),opacity .6s}
+#paisajes-antiestres .pa-sheet[aria-expanded=true] .pa-guide{transform:rotateY(-112deg);opacity:0}
+@media(any-hover:hover){#paisajes-antiestres .pa-sheet:hover .pa-guide{transform:rotateY(-112deg);opacity:0}}
+#paisajes-antiestres .pa-controls{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px}
+#paisajes-antiestres .pa-controls button{background:#ffca79;color:#15182a;border-color:#ffca79}
+#paisajes-antiestres .pa-caption{font-size:12px;color:#c5d1e5;margin:10px 0}
+@media(prefers-reduced-motion:reduce){#paisajes-antiestres .pa-guide{transition:none}}
 </style></head><body><header><strong>gostoreuy ✦</strong><a href="privacy.html">Privacidad</a></header><main><section class="hero hero-feature" id="stickers" aria-labelledby="hero-title">
 <div class="hero-copy"><div class="hero-kicker"><span>✦</span> GOSTOREUY <i></i> ARTE DIGITAL · URUGUAY</div>
 <h1 id="hero-title">Stickers que<br><em>cobran vida.</em></h1>
@@ -120,6 +132,10 @@ html[data-catalog] .collection-more{display:none}html[data-catalog] .collection-
 <div class="rv-select" role="group" aria-label="Elegir mascota"><button type="button" data-rv-pet="0" aria-pressed="true">Gatito</button><button type="button" data-rv-pet="1" aria-pressed="false">Beagle</button><button type="button" data-rv-pet="2" aria-pressed="false">Conejito</button></div>
 <div class="rv-pair"><div class="rv-paper"><canvas id="rv-model" width="360" height="360" role="img" aria-label="Modelo a color"></canvas><span class="rv-label">MODELO A COLOR</span></div><div class="rv-paper"><canvas id="rv-draw" width="360" height="360" aria-label="Guía interactiva para revelar el dibujo"></canvas><span class="rv-label">TU DIBUJO</span></div></div>
 <div class="rv-tools"><button class="rv-play" id="rv-play" type="button">▶ Ver cómo aparece</button><button id="rv-reset" type="button">Reiniciar</button></div><div class="rv-status" id="rv-status" role="status">Cargando muestra…</div></div></div>
+<div id="paisajes-antiestres" aria-labelledby="pa-title"><div class="tag">Dibujá y revelá · Láminas de gran formato</div><h3 id="pa-title">Paisajes antiestrés</h3><p>Una lámina completa para disfrutar del dibujo línea por línea. Remarcá las guías suaves con lapiceras de colores, sin rellenar grandes superficies.</p><div class="rv-meta"><span>A4 horizontal · 29,7 × 21 cm</span><span>Guía de trazos tenues</span><span>Modelo a color</span></div>
+<button class="pa-sheet" id="pa-sheet" type="button" aria-expanded="false" aria-label="Abrir la lámina para ver el paisaje a color"><img src="assets/paisaje-a4-color.webp" alt="Paisaje de cascadas y montañas revelado con trazos de colores" loading="lazy"><img class="pa-guide" src="assets/paisaje-a4-guia.webp" alt="El mismo paisaje con líneas grises tenues para remarcar" loading="lazy"></button>
+<p class="pa-caption">Valle de las cascadas · Vista previa de la lámina A4 horizontal. Pasá el mouse por encima o tocá la lámina para revelar el color.</p><div class="pa-controls"><button id="pa-toggle" type="button" aria-controls="pa-sheet">Ver paisaje a color</button><span class="shop-status">Compra próximamente</span></div></div>
+<script id="pa-script">(()=>{const s=document.getElementById('pa-sheet'),b=document.getElementById('pa-toggle');function toggle(){const open=s.getAttribute('aria-expanded')!=='true';s.setAttribute('aria-expanded',String(open));s.setAttribute('aria-label',open?'Cerrar la lámina y volver a la guía suave':'Abrir la lámina para ver el paisaje a color');b.textContent=open?'Volver a la guía suave':'Ver paisaje a color'}s.addEventListener('click',toggle);b.addEventListener('click',toggle)})();</script>
 </section>
 <script id="revela-script">
 (()=>{const root=document.getElementById('dibuja-revela'),model=root.querySelector('#rv-model'),draw=root.querySelector('#rv-draw'),m=model.getContext('2d'),d=draw.getContext('2d'),status=root.querySelector('#rv-status'),atlas=new Image();let pet=0,ready=false,run=0,last=null,held=false;
