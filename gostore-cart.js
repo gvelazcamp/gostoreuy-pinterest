@@ -23,7 +23,6 @@ document.querySelectorAll('#coleccion-stickers .sticker-collection-card').forEac
 document.querySelectorAll('#cuadernos article.card').forEach(c=>register(c,'Hojas ilustradas',199));
 document.querySelectorAll('#colorear .book-card').forEach(c=>register(c,'Libros para colorear',499,{count:parseInt(c.querySelector('.go-pack-badge')?.textContent)||10}));
 document.querySelectorAll('#galeria .remera-extra, #galeria .taza-extra').forEach(c=>register(c,c.classList.contains('taza-extra')?'Tazas':'Remeras',c.classList.contains('taza-extra')?249:399));
-register(document.querySelector('#producto-remeras'),'Remeras',399,{title:'Tom y Jerry'});
 placeholder(document.querySelector('#producto-tazas'),249);
 placeholder(document.querySelector('#producto-biblioratos'),199);
 const pets=document.querySelector('#rv-mascotas .rv-layout>div:first-child');register(pets,'Dibujá y revelá',499,{title:'Mascotas tiernas · Colección',count:20});
