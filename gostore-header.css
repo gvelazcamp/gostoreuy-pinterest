@@ -1,0 +1,53 @@
+/* Header compacto + botones hero (gostoreuy) */
+html body .site-header.gh-ready{position:sticky!important;top:0;z-index:60!important;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important;gap:20px!important;min-height:62px;max-width:none!important;width:100%!important;margin:0!important;box-sizing:border-box;padding:10px max(16px,calc((100% - 1100px)/2))!important;background:rgba(10,16,33,.82);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07)}
+html body .site-header.gh-ready>.site-brand{font-size:21px!important;letter-spacing:-.02em;line-height:1!important}
+.gh-star{color:#ffc05c}
+.gh-ready .site-nav{display:flex!important;align-items:center;gap:22px!important;margin-left:auto;width:auto!important;max-width:none!important;font-size:14px!important}
+.gh-ready .site-nav>.go-cart-toggle{display:none!important}
+.gh-actions{display:flex;gap:6px;flex-shrink:0}
+.gh-ib{position:relative;width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);cursor:pointer;padding:0;color:#ffd27a}
+.gh-ib:hover{background:rgba(255,193,107,.1);border-color:rgba(255,193,107,.4)}
+.gh-ib:focus-visible,.gh-item:focus-visible,.gh-go:focus-visible{outline:2px solid #ffda91;outline-offset:2px}
+.gh-ib svg,.gh-item svg,.gh-go svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.gh-badge{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 4px;border-radius:10px;background:linear-gradient(135deg,#ffd27a,#ff9a5a);color:#1a1204;font:800 11px/19px system-ui;text-align:center;border:2px solid #0a1021}
+.gh-badge[hidden]{display:none}
+.gh-menu{display:none}
+@media(max-width:760px){
+ .gh-ready .site-nav{display:none!important}
+ .gh-menu{display:grid}
+ html body .site-header.gh-ready{padding:10px 16px!important}
+}
+/* Drawer */
+.gh-overlay{position:fixed;inset:0;background:rgba(3,5,12,.6);z-index:900;opacity:0;pointer-events:none;transition:opacity .2s}
+.gh-overlay.open{opacity:1;pointer-events:auto}
+.gh-drawer{position:fixed;top:0;right:0;bottom:0;width:min(86vw,320px);z-index:901;background:#0f1528;border-left:1px solid rgba(255,255,255,.08);padding:16px 16px 20px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;transform:translateX(100%);transition:transform .25s ease;visibility:hidden;color:#f8f9ff}
+.gh-drawer.open{transform:none;visibility:visible}
+.gh-dtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.gh-dtop strong{font-size:19px}
+.gh-item{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:52px;padding:0 12px;border-radius:12px;background:none;border:0;color:#f8f9ff;font:600 15.5px system-ui;text-decoration:none;cursor:pointer;text-align:left}
+.gh-item>span{display:flex;align-items:center;gap:12px}
+.gh-item>span svg{color:#ffd27a}
+.gh-item>svg{color:#6f7894;width:16px;height:16px;transition:transform .2s}
+.gh-item:hover,.gh-acc[aria-expanded=true]{background:rgba(255,193,107,.08)}
+.gh-acc[aria-expanded=true]>svg{transform:rotate(180deg)}
+.gh-sub{margin:2px 0 8px 43px;border-left:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column}
+.gh-sub[hidden]{display:none}
+.gh-sub a{padding:11px 14px;color:#aab1c7;font-size:14px;text-decoration:none}
+.gh-sub a:hover{color:#ffc05c}
+.gh-cartbox{margin-top:auto;border-radius:16px;padding:14px;background:rgba(255,193,107,.07);border:1px solid rgba(255,193,107,.25);display:grid;gap:4px}
+.gh-cartbox small{color:#aab1c7;font-size:12.5px}
+.gh-go{margin-top:10px;height:48px;border:0;border-radius:13px;background:linear-gradient(90deg,#ffd27a,#ffad5e);color:#1a1204;font:700 15px system-ui;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+body.gh-lock{overflow:hidden}
+/* Botones del hero */
+.hero-actions .ha-ico{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.hero-secondary .ha-l{display:inline-flex;align-items:center;gap:8px}
+.hero-secondary .ha-l .ha-ico{color:#ffd27a;stroke-width:1.8}
+.hero-secondary>.ha-ico{color:#6f7894;width:15px;height:15px}
+@media(max-width:700px){
+ .hero-actions{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important}
+ .hero-actions a.hero-primary{grid-column:1/-1;min-height:54px;font-size:15.5px;border-radius:14px;padding:0 16px}
+ .hero-actions a.hero-secondary{min-height:52px;justify-content:center;padding:0 8px;font-size:13.5px;border-radius:14px;white-space:nowrap}
+ .hero-secondary>.ha-ico{display:none}
+}
+/* Etiqueta de colección por encima de los stickers */
+.stage-label{z-index:20;background:rgba(10,16,33,.85);padding:6px 10px;border-radius:8px}
