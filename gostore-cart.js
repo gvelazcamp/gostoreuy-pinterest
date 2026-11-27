@@ -119,7 +119,9 @@ render();finishPayment();
   try{const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:'felix',email,accepts_news:!!document.getElementById('claim-news')?.checked})});const d=await r.json();
    if(!r.ok||!d.url)throw Error(d.error||'No se pudo completar el reclamo.');
    const u=new URL(d.url);if(u.origin!==new URL(cfg.endpoint).origin||!u.pathname.startsWith('/storage/v1/object/sign/stickers-originales/'))throw Error('Enlace no válido.');
-   msg.textContent='¡Listo! Tu fondo está disponible 15 minutos:';const a=document.createElement('a');a.href=u.href;a.rel='noreferrer';a.textContent='Descargar fondo de Félix';msg.append(a);
+   msg.textContent='¡Listo! Tu fondo está disponible 15 minutos:';const a=document.createElement('a');a.href=u.href;a.rel='noreferrer';a.textContent='Descargar fondo de Félix (PNG)';msg.append(a);
+   const pb=document.createElement('button');pb.type='button';pb.className='cel-btn cel-pdf';pb.style.cssText='display:block;width:100%;margin-top:8px';pb.textContent='Descargar PDF (confirmación + gracias + fondo)';
+   pb.addEventListener('click',async()=>{const t=pb.textContent;pb.disabled=true;pb.textContent='Preparando PDF…';try{const rr=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'pdf',product:'felix',email})});if(!rr.ok||!(rr.headers.get('Content-Type')||'').includes('application/pdf')){let x;try{x=await rr.json()}catch{}throw Error(x?.error||'No se pudo preparar el PDF')}const bl=await rr.blob(),link=document.createElement('a');link.href=URL.createObjectURL(bl);link.download='GoStoreUY-felix-fondo.pdf';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),60000)}catch(er){msg.append(document.createTextNode(' '+(er.message||'No se pudo preparar el PDF')))}finally{pb.disabled=false;pb.textContent=t}});msg.append(pb);
   }catch(err){msg.textContent=err.message||'No se pudo completar el reclamo.'}
   finally{btn.disabled=false;btn.textContent='Reclamar gratis'}});
 })();
