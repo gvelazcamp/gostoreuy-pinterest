@@ -123,3 +123,18 @@ render();finishPayment();
   }catch(err){msg.textContent=err.message||'No se pudo completar el reclamo.'}
   finally{btn.disabled=false;btn.textContent='Reclamar gratis'}});
 })();
+
+(()=>{'use strict';
+ const f=document.getElementById('claim-del');if(!f)return;
+ const cfg=window.GOSTORE_PAYPAL||{},msg=f.querySelector('.cel-msg'),btn=f.querySelector('button'),inp=document.getElementById('del-mail');
+ let endpoint='';try{endpoint=new URL('/functions/v1/gostoreuy-claim',cfg.endpoint).href}catch{}
+ f.addEventListener('submit',async e=>{e.preventDefault();msg.textContent='';
+  const email=inp.value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){msg.textContent='Ingresá un mail válido.';return}
+  if(!endpoint){msg.textContent='No está disponible ahora.';return}
+  btn.disabled=true;btn.textContent='Borrando…';
+  try{const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',email})});const d=await r.json();
+   if(!r.ok||!d.ok)throw Error(d.error||'No se pudo procesar el pedido.');
+   msg.textContent='Listo: borramos ese mail de nuestros registros.';inp.value='';
+  }catch(err){msg.textContent=err.message||'No se pudo procesar el pedido.'}
+  finally{btn.disabled=false;btn.textContent='Borrar'}});
+})();
