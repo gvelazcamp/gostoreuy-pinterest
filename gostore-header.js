@@ -25,7 +25,7 @@ const links=[...h.querySelectorAll('.product-dropdown a')];
 dr.innerHTML='<div class="gh-dtop"><strong>Menú</strong></div>'
 +'<a class="gh-item" href="./"><span>'+svg(I.home)+'Inicio</span></a>'
 +'<button class="gh-item gh-acc" type="button" aria-expanded="false"><span>'+svg(I.grid)+'Productos</span>'+svg(I.down)+'</button>'
-+'<div class="gh-sub" hidden>'+links.map(a=>'<a href="'+esc(a.getAttribute('href'))+'">'+esc(a.textContent.trim())+'</a>').join('')+'</div>'
++'<div class="gh-sub" hidden>'+links.map(a=>a.getAttribute('aria-disabled')==='true'?'<a role="link" aria-disabled="true" style="opacity:.58;cursor:not-allowed;pointer-events:none">'+esc(a.textContent.trim())+'</a>':'<a href="'+esc(a.getAttribute('href'))+'">'+esc(a.textContent.trim())+'</a>').join('')+'</div>'
 +'<button class="gh-item gh-dhist" type="button"><span>'+svg(I.bag)+'Mis compras</span>'+svg(I.chev)+'</button>'
 +'<div class="gh-cartbox"><small>Tu carrito</small><strong class="gh-cnt">0 productos</strong><button type="button" class="gh-go">Ver carrito '+svg(I.arrow)+'</button></div>';
 const bX=ib('gh-x','Cerrar menú',I.x);dr.querySelector('.gh-dtop').append(bX);
