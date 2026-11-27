@@ -106,3 +106,19 @@ async function refreshDownloads(){
 try{receipt=JSON.parse(sessionStorage.getItem(RECEIPT_KEY)||'null');if(receipt?.orderId){deliveryPanel.hidden=false;if(receipt.hasStickers)deliveryPanel.append(button('Recuperar descargas de la última compra','go-back',refreshDownloads));window.GoStoreHistory?.offer(deliveryPanel,receipt)}}catch{}
 render();finishPayment();
 })();
+(()=>{'use strict';
+ const form=document.querySelector('#celular .cel-claim');if(!form)return;
+ const cfg=window.GOSTORE_PAYPAL||{},msg=form.querySelector('.cel-msg'),btn=form.querySelector('button'),inp=form.querySelector('input');
+ let endpoint='';try{endpoint=new URL('/functions/v1/gostoreuy-claim',cfg.endpoint).href}catch{}
+ document.querySelector('#celular .cel-hero-claim')?.addEventListener('click',()=>{form.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>inp.focus({preventScroll:true}),350)});
+ form.addEventListener('submit',async e=>{e.preventDefault();msg.textContent='';
+  const email=inp.value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){msg.textContent='Ingresá un mail válido.';return}
+  if(!endpoint){msg.textContent='El reclamo no está disponible ahora.';return}
+  btn.disabled=true;btn.textContent='Preparando…';
+  try{const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:'felix',email})});const d=await r.json();
+   if(!r.ok||!d.url)throw Error(d.error||'No se pudo completar el reclamo.');
+   const u=new URL(d.url);if(u.origin!==new URL(cfg.endpoint).origin||!u.pathname.startsWith('/storage/v1/object/sign/stickers-originales/'))throw Error('Enlace no válido.');
+   msg.textContent='¡Listo! Tu fondo está disponible 15 minutos:';const a=document.createElement('a');a.href=u.href;a.rel='noreferrer';a.textContent='Descargar fondo de Félix';msg.append(a);
+  }catch(err){msg.textContent=err.message||'No se pudo completar el reclamo.'}
+  finally{btn.disabled=false;btn.textContent='Reclamar gratis'}});
+})();
