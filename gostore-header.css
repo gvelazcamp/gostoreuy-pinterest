@@ -51,3 +51,14 @@ body.gh-lock{overflow:hidden}
 }
 /* Etiqueta de colección por encima de los stickers */
 .stage-label{z-index:20;background:rgba(10,16,33,.85);padding:6px 10px;border-radius:8px}
+/* Tienda creativa: las 4 tarjetas con el mismo formato */
+#galeria .shop-card:not(.remera-extra):not(.taza-extra)>:is(a,.go-sample-image){position:relative;aspect-ratio:4/3;overflow:hidden}
+#galeria .shop-card:not(.remera-extra):not(.taza-extra)>:is(a,.go-sample-image) img{width:100%!important;height:100%!important;aspect-ratio:auto!important;object-fit:cover!important}
+#galeria #producto-libros>a{background:#a8dcd0}
+#galeria #producto-libros>a img{object-fit:contain!important}
+#galeria #producto-remeras .go-sample-image img{object-position:center 15%!important}
+#galeria .shop-card:not(.remera-extra):not(.taza-extra) .go-buy-panel{grid-template-rows:auto!important;margin-top:auto}
+#galeria .shop-card:not(.remera-extra):not(.taza-extra) .go-buy-actions{display:none!important}
+#galeria .shop-card .shop-cta{order:99;margin-top:12px;width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(110deg,#ffda83,#ffae4c);color:#14192b;font-weight:800;font-size:15px;text-decoration:none;box-sizing:border-box}
+#galeria .shop-card .shop-cta:hover{filter:brightness(1.05)}
+#galeria .shop-card .shop-cta:focus-visible{outline:2px solid #ffda91;outline-offset:2px}
